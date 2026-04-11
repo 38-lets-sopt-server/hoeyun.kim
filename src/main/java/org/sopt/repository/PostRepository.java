@@ -5,8 +5,8 @@ import org.sopt.domain.Post;
 import java.util.ArrayList;
 import java.util.List;
 
-class PostRepository {
-    private final List<Post> postList = new ArrayList<>();
+public class PostRepository {
+    private static final List<Post> postList = new ArrayList<>();
     private Long nextId = 1L;
 
     public Post save(Post post) {
@@ -14,7 +14,7 @@ class PostRepository {
         return post;
     }
 
-    public List<Post> findAll() {
+    public static List<Post> findAll() {
         return postList;
     }
 

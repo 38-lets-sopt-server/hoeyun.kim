@@ -4,8 +4,10 @@ package org.sopt;
 // 에디터 여백에 있는 <icon src="AllIcons.Actions.Execute"/> 아이콘을 클릭하세요.
 import org.sopt.controller.PostController;
 import org.sopt.dto.Request.CreatePostRequest;
+import org.sopt.dto.Request.UpdatePostRequestDto;
+import org.sopt.dto.Response.commonResponse;
 import org.sopt.dto.Response.CreatePostResponse;
-import org.sopt.dto.Response.PostResponse;
+import org.sopt.dto.Response.ReadPostResponseDto;
 
 import java.util.List;
 import java.util.Scanner;
@@ -46,19 +48,24 @@ public class Main {
                     break;
 
                 case 2:
-                    List<PostResponse> posts = postController.getAllPosts();
-                    if (posts.isEmpty()) {
-                        System.out.println("등록된 게시글이 없습니다.");
-                    } else {
+                    commonResponse<List<ReadPostResponseDto>> postsResponse = postController.getAllPosts();
+                    System.out.println(postsResponse.getMessage());
+
+                    List<ReadPostResponseDto> posts = postsResponse.getData();
+                    if (posts != null && !posts.isEmpty()) {
                         posts.forEach(p -> System.out.println(p + "\n---"));
                     }
                     break;
 
                 case 3:
                     System.out.print("조회할 게시글 ID: ");
-                    PostResponse post = postController.getPost(scanner.nextLong());
+                    commonResponse<ReadPostResponseDto> postResponse = postController.getPost(scanner.nextLong());
                     scanner.nextLine();
-                    if (post != null) System.out.println(post);
+                    System.out.println(postResponse.getMessage());
+
+                    if (postResponse.isSuccess() && postResponse.getData() != null) {
+                        System.out.println(postResponse.getData());
+                    }
                     break;
 
                 case 4:
@@ -69,12 +76,17 @@ public class Main {
                     String newTitle = scanner.nextLine();
                     System.out.print("새 내용: ");
                     String newContent = scanner.nextLine();
-                    postController.updatePost(updateId, newTitle, newContent);
+
+                    commonResponse<Void> updateResponse = postController.updatePost(
+                            new UpdatePostRequestDto(updateId, newTitle, newContent)
+                    );
+                    System.out.println(updateResponse.getMessage());
                     break;
 
                 case 5:
                     System.out.print("삭제할 게시글 ID: ");
-                    postController.deletePost(scanner.nextLong());
+                    commonResponse<Void> deleteResponse = postController.deletePost(scanner.nextLong());
+                    System.out.println(deleteResponse.getMessage());
                     scanner.nextLine();
                     break;
 
