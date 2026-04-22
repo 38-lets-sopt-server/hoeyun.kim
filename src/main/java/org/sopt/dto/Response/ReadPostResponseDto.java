@@ -3,14 +3,14 @@ package org.sopt.dto.Response;
 import org.sopt.domain.Post;
 
 // 게시글 조회 응답 (서버 → 클라이언트)
-public class PostResponse {
+public class ReadPostResponseDto {
     Long id;
     String title;
     String content;
     String author;
     String createdAt;
 
-    public PostResponse(Post post) {
+    public ReadPostResponseDto(Post post) {
         this.id = post.getId();
         this.title = post.getTitle();
         this.content = post.getContent();
