@@ -5,7 +5,6 @@ import org.sopt.dto.Request.UpdatePostRequestDto;
 import org.sopt.dto.Response.CreatePostResponse;
 import org.sopt.dto.Response.ReadPostResponseDto;
 import org.sopt.dto.Response.commonResponse;
-import org.sopt.exception.PostNotFoundException;
 import org.sopt.service.PostService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -44,11 +43,7 @@ public class PostController {
     // GET /posts/{id} 📝 과제
     @GetMapping("/{id}")
     public commonResponse<ReadPostResponseDto> getPost(@PathVariable Long id) {
-        try {
-            return commonResponse.success("게시글 조회 완료!", postService.readPost(id));
-        } catch (PostNotFoundException | IllegalArgumentException e) {
-            return commonResponse.fail(e.getMessage());
-        }
+        return commonResponse.success("게시글 조회 완료!", postService.readPost(id));
     }
 
     // PUT /posts/{id} 📝 과제
@@ -57,22 +52,14 @@ public class PostController {
             @PathVariable Long id,
             @RequestBody UpdatePostRequestDto request
     ) {
-        try {
-            String message = postService.updatePost(id, request);
-            return commonResponse.success(message, null);
-        } catch (PostNotFoundException | IllegalArgumentException e) {
-            return commonResponse.fail(e.getMessage());
-        }
+        String message = postService.updatePost(id, request);
+        return commonResponse.success(message, null);
     }
 
     // DELETE /posts/{id} 📝 과제
     @DeleteMapping("{id}")
     public commonResponse<Void> deletePost(@PathVariable Long id) {
-        try {
-            String message = postService.deletePost(id);
-            return commonResponse.success(message, null);
-        } catch (PostNotFoundException | IllegalArgumentException e) {
-            return commonResponse.fail(e.getMessage());
-        }
+        String message = postService.deletePost(id);
+        return commonResponse.success(message, null);
     }
 }
