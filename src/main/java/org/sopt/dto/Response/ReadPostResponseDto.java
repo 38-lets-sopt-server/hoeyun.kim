@@ -1,5 +1,6 @@
 package org.sopt.dto.Response;
 
+import org.sopt.domain.BoardType;
 import org.sopt.domain.Post;
 
 // 게시글 조회 응답 (서버 → 클라이언트)
@@ -9,6 +10,7 @@ public class ReadPostResponseDto {
     private String content;
     private String author;
     private String createdAt;
+    private BoardType boardType;
 
     public ReadPostResponseDto() {
     }
@@ -19,6 +21,7 @@ public class ReadPostResponseDto {
         this.content = post.getContent();
         this.author = post.getAuthor();
         this.createdAt = post.getCreatedAt();
+        this.boardType = post.getBoardType();
     }
 
     public Long getId() {
@@ -39,6 +42,10 @@ public class ReadPostResponseDto {
 
     public String getCreatedAt() {
         return createdAt;
+    }
+
+    public BoardType getBoardType() {
+        return boardType;
     }
 
     @Override

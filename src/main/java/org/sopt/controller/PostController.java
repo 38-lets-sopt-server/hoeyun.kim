@@ -1,5 +1,6 @@
 package org.sopt.controller;
 
+import org.sopt.domain.BoardType;
 import org.sopt.dto.Request.CreatePostRequest;
 import org.sopt.dto.Request.UpdatePostRequestDto;
 import org.sopt.dto.Response.ApiResponse;
@@ -10,8 +11,6 @@ import org.sopt.service.PostService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/posts")
@@ -45,6 +44,21 @@ public class PostController {
         }
 
         return ApiResponse.success(COMMON_OK_CODE, "전체 게시글 조회 완료!", response);
+    }
+
+    @GetMapping("/board-types/{boardType}")
+    public ApiResponse<PostPageResponse> getPostsByBoardType(
+            @PathVariable BoardType boardType,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        PostPageResponse response = postService.getPostsByBoardType(boardType, page, size);
+
+        if (response.getPosts().isEmpty()) {
+            return ApiResponse.success(COMMON_OK_CODE, "등록된 게시글이 없습니다.", response);
+        }
+
+        return ApiResponse.success(COMMON_OK_CODE, "게시글 조회 완료!", response);
     }
 
     // GET /posts/{id} 📝 과제

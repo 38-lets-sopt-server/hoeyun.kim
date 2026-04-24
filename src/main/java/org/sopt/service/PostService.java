@@ -1,5 +1,6 @@
 package org.sopt.service;
 
+import org.sopt.domain.BoardType;
 import org.sopt.domain.Post;
 import org.sopt.dto.Request.CreatePostRequest;
 import org.sopt.dto.Request.UpdatePostRequestDto;
@@ -24,12 +25,14 @@ public class PostService {
 
     public CreatePostResponse createPost(CreatePostRequest request) {
         postValidator.validateTitleAndContent(request.getTitle(), request.getContent());
+        validateBoardType(request.getBoardType());
         Post newPost = new Post(
                 postRepository.generateId(),
                 request.getTitle(),
                 request.getContent(),
                 request.getAuthor(),
-                LocalDateTime.now().toString()
+                LocalDateTime.now().toString(),
+                request.getBoardType()
         );
         postRepository.save(newPost);
         return new CreatePostResponse(newPost.getId());
@@ -39,22 +42,15 @@ public class PostService {
     // 자유게시판 목록 화면에서 호출돼요
     public PostPageResponse getAllPosts(int page, int size) {
         validatePageRequest(page, size);
+        return createPostPageResponse(postRepository.getAllPosts(), page, size);
+    }
 
-        List<Post> postList = postRepository.getAllPosts();
-        int totalElements = postList.size();
-        int totalPages = totalElements == 0 ? 0 : (int) Math.ceil((double) totalElements / size);
-        int startIndex = page * size;
-        int endIndex = Math.min(startIndex + size, totalElements);
-
-        if (startIndex >= totalElements) {
-            return new PostPageResponse(List.of(), page, size, totalElements, totalPages);
-        }
-
-        List<ReadPostResponseDto> pagedPosts = postList.subList(startIndex, endIndex).stream()
-                .map(ReadPostResponseDto::new)
+    public PostPageResponse getPostsByBoardType(BoardType boardType, int page, int size) {
+        validatePageRequest(page, size);
+        List<Post> filteredPosts = postRepository.getAllPosts().stream()
+                .filter(post -> post.getBoardType() == boardType)
                 .toList();
-
-        return new PostPageResponse(pagedPosts, page, size, totalElements, totalPages);
+        return createPostPageResponse(filteredPosts, page, size);
     }
 
     // READ - 단건 📝 과제
@@ -67,9 +63,10 @@ public class PostService {
     // 게시글 수정 화면에서 "완료"를 누르면 호출돼요
     public String updatePost(Long id, UpdatePostRequestDto request) {
         postValidator.validateTitleAndContent(request.getTitle(), request.getContent());
+        validateBoardType(request.getBoardType());
 
         Post post = findPostById(id);
-        post.update(request.getTitle(), request.getContent());
+        post.update(request.getTitle(), request.getContent(), request.getBoardType());
         return "수정 완료!";
     }
 
@@ -92,5 +89,28 @@ public class PostService {
         if (size < 1) {
             throw new IllegalArgumentException("size는 1 이상이어야 합니다.");
         }
+    }
+
+    private void validateBoardType(BoardType boardType) {
+        if (boardType == null) {
+            throw new IllegalArgumentException("boardType은 필수입니다.");
+        }
+    }
+
+    private PostPageResponse createPostPageResponse(List<Post> posts, int page, int size) {
+        int totalElements = posts.size();
+        int totalPages = totalElements == 0 ? 0 : (int) Math.ceil((double) totalElements / size);
+        int startIndex = page * size;
+        int endIndex = Math.min(startIndex + size, totalElements);
+
+        if (startIndex >= totalElements) {
+            return new PostPageResponse(List.of(), page, size, totalElements, totalPages);
+        }
+
+        List<ReadPostResponseDto> pagedPosts = posts.subList(startIndex, endIndex).stream()
+                .map(ReadPostResponseDto::new)
+                .toList();
+
+        return new PostPageResponse(pagedPosts, page, size, totalElements, totalPages);
     }
 }
