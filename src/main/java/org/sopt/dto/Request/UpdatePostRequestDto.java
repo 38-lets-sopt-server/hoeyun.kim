@@ -1,25 +1,30 @@
 package org.sopt.dto.Request;
 
 public class UpdatePostRequestDto {
-    private final Long id;
-    private final String title;
-    private final String content;
+    private String title;
+    private String content;
 
-    public UpdatePostRequestDto(Long id, String title, String content) {
-        this.id = id;
-        this.title = title;
-        this.content = content;
+    public UpdatePostRequestDto() {
     }
 
-    public Long getId() {
-        return id;
+    public UpdatePostRequestDto(String title, String content) {
+        this.title = title;
+        this.content = content;
     }
 
     public String getTitle() {
         return title;
     }
 
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
     public String getContent() {
         return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
     }
 }

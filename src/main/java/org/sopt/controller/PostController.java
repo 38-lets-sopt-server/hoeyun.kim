@@ -2,30 +2,37 @@ package org.sopt.controller;
 
 import org.sopt.dto.Request.CreatePostRequest;
 import org.sopt.dto.Request.UpdatePostRequestDto;
-import org.sopt.dto.Response.commonResponse;
 import org.sopt.dto.Response.CreatePostResponse;
 import org.sopt.dto.Response.ReadPostResponseDto;
+import org.sopt.dto.Response.commonResponse;
 import org.sopt.exception.PostNotFoundException;
 import org.sopt.service.PostService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@RestController
+@RequestMapping("/posts")
 public class PostController {
-    private final PostService postService = new PostService();
+    private final PostService postService;
+
+    public PostController(PostService postService) {
+        this.postService = postService;
+    }
 
     // POST /posts
-    public CreatePostResponse createPost(CreatePostRequest request) {
-        try {
-            return postService.createPost(request);
-        } catch (IllegalArgumentException e) {
-            return new CreatePostResponse(null, "🚫 " + e.getMessage());
-        }
+    @PostMapping
+    public ResponseEntity<CreatePostResponse> createPost(@RequestBody CreatePostRequest request) {
+        CreatePostResponse response = postService.createPost(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     // GET /posts 📝 과제
-    // TODO: postService.getAllPosts() 호출해서 반환
+    @GetMapping
     public commonResponse<List<ReadPostResponseDto>> getAllPosts() {
-        List<ReadPostResponseDto> posts = postService.readAllPosts();
+        List<ReadPostResponseDto> posts = postService.getAllPosts();
 
         if (posts.isEmpty()) {
             return commonResponse.success("등록된 게시글이 없습니다.", posts);
@@ -35,8 +42,8 @@ public class PostController {
     }
 
     // GET /posts/{id} 📝 과제
-    // TODO: postService.getPost(id) 호출, 예외 발생 시 null 반환
-    public commonResponse<ReadPostResponseDto> getPost(Long id) {
+    @GetMapping("/{id}")
+    public commonResponse<ReadPostResponseDto> getPost(@PathVariable Long id) {
         try {
             return commonResponse.success("게시글 조회 완료!", postService.readPost(id));
         } catch (PostNotFoundException | IllegalArgumentException e) {
@@ -45,10 +52,13 @@ public class PostController {
     }
 
     // PUT /posts/{id} 📝 과제
-    // TODO: postService.updatePost() 호출, 예외 발생 시 에러 메시지 출력
-    public commonResponse<Void> updatePost(UpdatePostRequestDto request) {
+    @PutMapping("{id}")
+    public commonResponse<Void> updatePost(
+            @PathVariable Long id,
+            @RequestBody UpdatePostRequestDto request
+    ) {
         try {
-            String message = postService.updatePost(request);
+            String message = postService.updatePost(id, request);
             return commonResponse.success(message, null);
         } catch (PostNotFoundException | IllegalArgumentException e) {
             return commonResponse.fail(e.getMessage());
@@ -56,8 +66,8 @@ public class PostController {
     }
 
     // DELETE /posts/{id} 📝 과제
-    // TODO: postService.deletePost() 호출, 예외 발생 시 에러 메시지 출력
-    public commonResponse<Void> deletePost(Long id) {
+    @DeleteMapping("{id}")
+    public commonResponse<Void> deletePost(@PathVariable Long id) {
         try {
             String message = postService.deletePost(id);
             return commonResponse.success(message, null);

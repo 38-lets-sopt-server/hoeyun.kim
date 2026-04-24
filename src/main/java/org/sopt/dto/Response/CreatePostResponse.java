@@ -2,12 +2,22 @@ package org.sopt.dto.Response;
 
 // 게시글 작성 응답 (서버 → 클라이언트)
 public class CreatePostResponse {
-    Long id;
-    public String message;
+    private Long id;
+    private String message;
+
+    public CreatePostResponse() {
+    }
 
     public CreatePostResponse(Long id, String message) {
         this.id = id;
         this.message = message;
     }
-}
 
+    public Long getId() {
+        return id;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+}
