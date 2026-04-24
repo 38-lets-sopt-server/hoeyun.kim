@@ -31,7 +31,7 @@ public class PostService {
                 LocalDateTime.now().toString()
         );
         postRepository.save(newPost);
-        return new CreatePostResponse(newPost.getId(), "게시글 등록 완료!");
+        return new CreatePostResponse(newPost.getId());
     }
 
     // READ - 전체 📝 과제
