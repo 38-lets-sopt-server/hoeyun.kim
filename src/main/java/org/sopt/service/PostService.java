@@ -4,6 +4,7 @@ import org.sopt.domain.Post;
 import org.sopt.dto.Request.CreatePostRequest;
 import org.sopt.dto.Request.UpdatePostRequestDto;
 import org.sopt.dto.Response.CreatePostResponse;
+import org.sopt.dto.Response.PostPageResponse;
 import org.sopt.dto.Response.ReadPostResponseDto;
 import org.sopt.repository.PostRepository;
 import org.sopt.validator.PostValidator;
@@ -36,12 +37,24 @@ public class PostService {
 
     // READ - 전체 📝 과제
     // 자유게시판 목록 화면에서 호출돼요
-    public List<ReadPostResponseDto> getAllPosts() {
-        List<Post> postList = postRepository.getAllPosts();
+    public PostPageResponse getAllPosts(int page, int size) {
+        validatePageRequest(page, size);
 
-        return postList.stream()
+        List<Post> postList = postRepository.getAllPosts();
+        int totalElements = postList.size();
+        int totalPages = totalElements == 0 ? 0 : (int) Math.ceil((double) totalElements / size);
+        int startIndex = page * size;
+        int endIndex = Math.min(startIndex + size, totalElements);
+
+        if (startIndex >= totalElements) {
+            return new PostPageResponse(List.of(), page, size, totalElements, totalPages);
+        }
+
+        List<ReadPostResponseDto> pagedPosts = postList.subList(startIndex, endIndex).stream()
                 .map(ReadPostResponseDto::new)
                 .toList();
+
+        return new PostPageResponse(pagedPosts, page, size, totalElements, totalPages);
     }
 
     // READ - 단건 📝 과제
@@ -70,5 +83,14 @@ public class PostService {
 
     private Post findPostById(Long id) {
         return postRepository.findById(id);
+    }
+
+    private void validatePageRequest(int page, int size) {
+        if (page < 0) {
+            throw new IllegalArgumentException("page는 0 이상이어야 합니다.");
+        }
+        if (size < 1) {
+            throw new IllegalArgumentException("size는 1 이상이어야 합니다.");
+        }
     }
 }
