@@ -2,13 +2,14 @@ package org.sopt.dto.Response;
 
 import org.sopt.domain.BoardType;
 import org.sopt.domain.Post;
+import org.sopt.domain.User;
 
 // 게시글 조회 응답 (서버 → 클라이언트)
 public class ReadPostResponseDto {
     private Long id;
     private String title;
     private String content;
-    private String author;
+    private User user;
     private String createdAt;
     private BoardType boardType;
 
@@ -19,7 +20,7 @@ public class ReadPostResponseDto {
         this.id = post.getId();
         this.title = post.getTitle();
         this.content = post.getContent();
-        this.author = post.getAuthor();
+        this.user = post.getUser();
         this.createdAt = post.getCreatedAt();
         this.boardType = post.getBoardType();
     }
@@ -36,8 +37,8 @@ public class ReadPostResponseDto {
         return content;
     }
 
-    public String getAuthor() {
-        return author;
+    public User getUser() {
+        return this.user;
     }
 
     public String getCreatedAt() {
@@ -50,6 +51,6 @@ public class ReadPostResponseDto {
 
     @Override
     public String toString() {
-        return "[" + id + "] " + title + " - " + author + " (" + createdAt + ")\n" + content;
+        return "[" + id + "] " + title + " - " + user + " (" + createdAt + ")\n" + content;
     }
 }
