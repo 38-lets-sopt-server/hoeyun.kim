@@ -8,29 +8,38 @@ import org.sopt.dto.Response.CreatePostResponse;
 import org.sopt.dto.Response.PostPageResponse;
 import org.sopt.dto.Response.ReadPostResponseDto;
 import org.sopt.repository.PostRepository;
+import org.sopt.repository.UserRepository;
 import org.sopt.validator.PostValidator;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.sopt.exception.PostNotFoundException;
+
+
 import java.time.LocalDateTime;
 import java.util.List;
 
 
 @Service
 public class PostService {
+
     private final PostRepository postRepository;
+    private final UserRepository userRepository;
+
     private final PostValidator postValidator = new PostValidator();
 
-    public PostService(PostRepository postRepository) {
+    public PostService(PostRepository postRepository, UserRepository userRepository) {
         this.postRepository = postRepository;
+        this.userRepository = userRepository;
     }
 
+    @Transactional
     public CreatePostResponse createPost(CreatePostRequest request) {
         postValidator.validateTitleAndContent(request.getTitle(), request.getContent());
         validateBoardType(request.getBoardType());
         Post newPost = new Post(
-                postRepository.generateId(),
                 request.getTitle(),
                 request.getContent(),
-                request.getAuthor(),
+                request.getUser(),
                 LocalDateTime.now().toString(),
                 request.getBoardType()
         );
@@ -38,29 +47,30 @@ public class PostService {
         return new CreatePostResponse(newPost.getId());
     }
 
-    // READ - 전체 📝 과제
-    // 자유게시판 목록 화면에서 호출돼요
+    @Transactional(readOnly = true)
     public PostPageResponse getAllPosts(int page, int size) {
         validatePageRequest(page, size);
-        return createPostPageResponse(postRepository.getAllPosts(), page, size);
+        return createPostPageResponse(postRepository.findAll(), page, size);
     }
 
+
+    @Transactional(readOnly = true)
     public PostPageResponse getPostsByBoardType(BoardType boardType, int page, int size) {
         validatePageRequest(page, size);
-        List<Post> filteredPosts = postRepository.getAllPosts().stream()
+        List<Post> filteredPosts = postRepository.findAll().stream()
                 .filter(post -> post.getBoardType() == boardType)
                 .toList();
         return createPostPageResponse(filteredPosts, page, size);
     }
 
-    // READ - 단건 📝 과제
-    // 목록에서 특정 게시글을 탭하면 호출돼요 (게시글 상세 화면)
+
+    @Transactional(readOnly = true)
     public ReadPostResponseDto readPost(Long id) {
         return new ReadPostResponseDto(findPostById(id));
     }
 
-    // UPDATE 📝 과제
-    // 게시글 수정 화면에서 "완료"를 누르면 호출돼요
+
+    @Transactional
     public String updatePost(Long id, UpdatePostRequestDto request) {
         postValidator.validateTitleAndContent(request.getTitle(), request.getContent());
         validateBoardType(request.getBoardType());
@@ -70,17 +80,18 @@ public class PostService {
         return "수정 완료!";
     }
 
-    // DELETE 📝 과제
-    // 게시글 상세에서 삭제를 누르면 호출돼요
+
     public String deletePost(Long id) {
         Post post = findPostById(id);
-        postRepository.remove(post);
+        postRepository.delete(post);
         return "삭제 완료!";
     }
 
     private Post findPostById(Long id) {
-        return postRepository.findById(id);
+        return postRepository.findById(id)
+                .orElseThrow(PostNotFoundException::new);
     }
+
 
     private void validatePageRequest(int page, int size) {
         if (page < 0) {
@@ -112,5 +123,9 @@ public class PostService {
                 .toList();
 
         return new PostPageResponse(pagedPosts, page, size, totalElements, totalPages);
+    }
+
+    public UserRepository getUserRepository() {
+        return userRepository;
     }
 }
