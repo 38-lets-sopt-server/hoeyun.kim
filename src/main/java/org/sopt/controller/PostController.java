@@ -1,68 +1,86 @@
 package org.sopt.controller;
 
+import org.sopt.domain.BoardType;
 import org.sopt.dto.Request.CreatePostRequest;
 import org.sopt.dto.Request.UpdatePostRequestDto;
-import org.sopt.dto.Response.commonResponse;
+import org.sopt.dto.Response.ApiResponse;
 import org.sopt.dto.Response.CreatePostResponse;
+import org.sopt.dto.Response.PostPageResponse;
 import org.sopt.dto.Response.ReadPostResponseDto;
-import org.sopt.exception.PostNotFoundException;
 import org.sopt.service.PostService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
+@RestController
+@RequestMapping("/posts")
 public class PostController {
-    private final PostService postService = new PostService();
+    private static final String COMMON_OK_CODE = "COMMON_200";
+    private static final String COMMON_CREATED_CODE = "COMMON_201";
+    private final PostService postService;
+
+    public PostController(PostService postService) {
+        this.postService = postService;
+    }
 
     // POST /posts
-    public CreatePostResponse createPost(CreatePostRequest request) {
-        try {
-            return postService.createPost(request);
-        } catch (IllegalArgumentException e) {
-            return new CreatePostResponse(null, "🚫 " + e.getMessage());
-        }
+    @PostMapping
+    public ResponseEntity<ApiResponse<CreatePostResponse>> createPost(@RequestBody CreatePostRequest request) {
+        CreatePostResponse response = postService.createPost(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(COMMON_CREATED_CODE, "게시글 등록 완료!", response));
     }
 
     // GET /posts 📝 과제
-    // TODO: postService.getAllPosts() 호출해서 반환
-    public commonResponse<List<ReadPostResponseDto>> getAllPosts() {
-        List<ReadPostResponseDto> posts = postService.readAllPosts();
+    @GetMapping
+    public ApiResponse<PostPageResponse> getAllPosts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        PostPageResponse response = postService.getAllPosts(page, size);
 
-        if (posts.isEmpty()) {
-            return commonResponse.success("등록된 게시글이 없습니다.", posts);
+        if (response.getPosts().isEmpty()) {
+            return ApiResponse.success(COMMON_OK_CODE, "등록된 게시글이 없습니다.", response);
         }
 
-        return commonResponse.success("전체 게시글 조회 완료!", posts);
+        return ApiResponse.success(COMMON_OK_CODE, "전체 게시글 조회 완료!", response);
+    }
+
+    @GetMapping("/board-types/{boardType}")
+    public ApiResponse<PostPageResponse> getPostsByBoardType(
+            @PathVariable BoardType boardType,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        PostPageResponse response = postService.getPostsByBoardType(boardType, page, size);
+
+        if (response.getPosts().isEmpty()) {
+            return ApiResponse.success(COMMON_OK_CODE, "등록된 게시글이 없습니다.", response);
+        }
+
+        return ApiResponse.success(COMMON_OK_CODE, "게시글 조회 완료!", response);
     }
 
     // GET /posts/{id} 📝 과제
-    // TODO: postService.getPost(id) 호출, 예외 발생 시 null 반환
-    public commonResponse<ReadPostResponseDto> getPost(Long id) {
-        try {
-            return commonResponse.success("게시글 조회 완료!", postService.readPost(id));
-        } catch (PostNotFoundException | IllegalArgumentException e) {
-            return commonResponse.fail(e.getMessage());
-        }
+    @GetMapping("/{id}")
+    public ApiResponse<ReadPostResponseDto> getPost(@PathVariable Long id) {
+        return ApiResponse.success(COMMON_OK_CODE, "게시글 조회 완료!", postService.readPost(id));
     }
 
     // PUT /posts/{id} 📝 과제
-    // TODO: postService.updatePost() 호출, 예외 발생 시 에러 메시지 출력
-    public commonResponse<Void> updatePost(UpdatePostRequestDto request) {
-        try {
-            String message = postService.updatePost(request);
-            return commonResponse.success(message, null);
-        } catch (PostNotFoundException | IllegalArgumentException e) {
-            return commonResponse.fail(e.getMessage());
-        }
+    @PutMapping("{id}")
+    public ApiResponse<Void> updatePost(
+            @PathVariable Long id,
+            @RequestBody UpdatePostRequestDto request
+    ) {
+        String message = postService.updatePost(id, request);
+        return ApiResponse.success(COMMON_OK_CODE, message, null);
     }
 
     // DELETE /posts/{id} 📝 과제
-    // TODO: postService.deletePost() 호출, 예외 발생 시 에러 메시지 출력
-    public commonResponse<Void> deletePost(Long id) {
-        try {
-            String message = postService.deletePost(id);
-            return commonResponse.success(message, null);
-        } catch (PostNotFoundException | IllegalArgumentException e) {
-            return commonResponse.fail(e.getMessage());
-        }
+    @DeleteMapping("{id}")
+    public ApiResponse<Void> deletePost(@PathVariable Long id) {
+        String message = postService.deletePost(id);
+        return ApiResponse.success(COMMON_OK_CODE, message, null);
     }
 }
