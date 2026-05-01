@@ -7,7 +7,7 @@ import org.sopt.dto.Request.CreatePostRequest;
 import org.sopt.dto.Request.UpdatePostRequestDto;
 import org.sopt.dto.Response.CreatePostResponse;
 import org.sopt.dto.Response.PostPageResponse;
-import org.sopt.dto.Response.ReadPostResponseDto;
+import org.sopt.dto.Response.ReadPostResponse;
 import org.sopt.repository.PostRepository;
 import org.sopt.repository.UserRepository;
 import org.sopt.validator.PostValidator;
@@ -17,7 +17,6 @@ import org.sopt.exception.PostNotFoundException;
 import org.sopt.exception.UserNotFoundException;
 
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -43,7 +42,6 @@ public class PostService {
                 request.getTitle(),
                 request.getContent(),
                 user,
-                LocalDateTime.now().toString(),
                 request.getBoardType()
         );
         postRepository.save(newPost);
@@ -68,8 +66,8 @@ public class PostService {
 
 
     @Transactional(readOnly = true)
-    public ReadPostResponseDto readPost(Long id) {
-        return new ReadPostResponseDto(findPostById(id));
+    public ReadPostResponse readPost(Long id) {
+        return new ReadPostResponse(findPostById(id));
     }
 
 
@@ -129,8 +127,8 @@ public class PostService {
             return new PostPageResponse(List.of(), page, size, totalElements, totalPages);
         }
 
-        List<ReadPostResponseDto> pagedPosts = posts.subList(startIndex, endIndex).stream()
-                .map(ReadPostResponseDto::new)
+        List<ReadPostResponse> pagedPosts = posts.subList(startIndex, endIndex).stream()
+                .map(ReadPostResponse::new)
                 .toList();
 
         return new PostPageResponse(pagedPosts, page, size, totalElements, totalPages);

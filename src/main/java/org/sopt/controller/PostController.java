@@ -6,7 +6,7 @@ import org.sopt.dto.Request.UpdatePostRequestDto;
 import org.sopt.dto.Response.ApiResponse;
 import org.sopt.dto.Response.CreatePostResponse;
 import org.sopt.dto.Response.PostPageResponse;
-import org.sopt.dto.Response.ReadPostResponseDto;
+import org.sopt.dto.Response.ReadPostResponse;
 import org.sopt.service.PostService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -63,7 +63,7 @@ public class PostController {
 
     // GET /posts/{id} 📝 과제
     @GetMapping("/{id}")
-    public ApiResponse<ReadPostResponseDto> getPost(@PathVariable Long id) {
+    public ApiResponse<ReadPostResponse> getPost(@PathVariable Long id) {
         return ApiResponse.success(COMMON_OK_CODE, "게시글 조회 완료!", postService.readPost(id));
     }
 

@@ -4,24 +4,27 @@ import org.sopt.domain.BoardType;
 import org.sopt.domain.Post;
 import org.sopt.domain.User;
 
-// 게시글 조회 응답 (서버 → 클라이언트)
-public class ReadPostResponseDto {
+import java.time.LocalDateTime;
+
+public class ReadPostResponse {
     private Long id;
     private String title;
     private String content;
     private User user;
-    private String createdAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
     private BoardType boardType;
 
-    public ReadPostResponseDto() {
+    public ReadPostResponse() {
     }
 
-    public ReadPostResponseDto(Post post) {
+    public ReadPostResponse(Post post) {
         this.id = post.getId();
         this.title = post.getTitle();
         this.content = post.getContent();
         this.user = post.getUser();
         this.createdAt = post.getCreatedAt();
+        this.updatedAt = post.getUpdatedAt();
         this.boardType = post.getBoardType();
     }
 
@@ -41,8 +44,12 @@ public class ReadPostResponseDto {
         return this.user;
     }
 
-    public String getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
     }
 
     public BoardType getBoardType() {
