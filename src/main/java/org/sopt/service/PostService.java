@@ -2,6 +2,7 @@ package org.sopt.service;
 
 import org.sopt.domain.BoardType;
 import org.sopt.domain.Post;
+import org.sopt.domain.User;
 import org.sopt.dto.Request.CreatePostRequest;
 import org.sopt.dto.Request.UpdatePostRequestDto;
 import org.sopt.dto.Response.CreatePostResponse;
@@ -13,6 +14,7 @@ import org.sopt.validator.PostValidator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.sopt.exception.PostNotFoundException;
+import org.sopt.exception.UserNotFoundException;
 
 
 import java.time.LocalDateTime;
@@ -36,10 +38,11 @@ public class PostService {
     public CreatePostResponse createPost(CreatePostRequest request) {
         postValidator.validateTitleAndContent(request.getTitle(), request.getContent());
         validateBoardType(request.getBoardType());
+        User user = findUserById(request.getUserId());
         Post newPost = new Post(
                 request.getTitle(),
                 request.getContent(),
-                request.getUser(),
+                user,
                 LocalDateTime.now().toString(),
                 request.getBoardType()
         );
@@ -90,6 +93,14 @@ public class PostService {
     private Post findPostById(Long id) {
         return postRepository.findById(id)
                 .orElseThrow(PostNotFoundException::new);
+    }
+
+    private User findUserById(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("userId는 필수입니다.");
+        }
+        return userRepository.findById(id)
+                .orElseThrow(UserNotFoundException::new);
     }
 
 
