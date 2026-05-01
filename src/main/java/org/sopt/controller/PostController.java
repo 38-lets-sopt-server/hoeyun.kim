@@ -83,4 +83,22 @@ public class PostController {
         String message = postService.deletePost(id);
         return ApiResponse.success(COMMON_OK_CODE, message, null);
     }
+
+    @PostMapping("/{postId}/likes")
+    public ApiResponse<Void> likePost(
+            @PathVariable Long postId,
+            @RequestParam Long userId
+    ) {
+        String message = postService.likePost(postId, userId);
+        return ApiResponse.success(COMMON_OK_CODE, message, null);
+    }
+
+    @DeleteMapping("/{postId}/likes")
+    public ApiResponse<Void> cancelLike(
+            @PathVariable Long postId,
+            @RequestParam Long userId
+    ) {
+        String message = postService.cancelLike(postId, userId);
+        return ApiResponse.success(COMMON_OK_CODE, message, null);
+    }
 }

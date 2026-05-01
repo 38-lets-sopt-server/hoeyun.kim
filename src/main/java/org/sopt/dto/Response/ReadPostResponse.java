@@ -14,6 +14,7 @@ public class ReadPostResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private BoardType boardType;
+    private int likeCount;
 
     public ReadPostResponse() {
     }
@@ -26,6 +27,7 @@ public class ReadPostResponse {
         this.createdAt = post.getCreatedAt();
         this.updatedAt = post.getUpdatedAt();
         this.boardType = post.getBoardType();
+        this.likeCount = post.getLikeCount();
     }
 
     public Long getId() {
@@ -54,6 +56,10 @@ public class ReadPostResponse {
 
     public BoardType getBoardType() {
         return boardType;
+    }
+
+    public int getLikeCount() {
+        return likeCount;
     }
 
     @Override
