@@ -5,7 +5,7 @@ import org.sopt.domain.Like;
 import org.sopt.domain.Post;
 import org.sopt.domain.User;
 import org.sopt.dto.Request.CreatePostRequest;
-import org.sopt.dto.Request.UpdatePostRequestDto;
+import org.sopt.dto.Request.UpdatePostRequest;
 import org.sopt.dto.Response.CreatePostResponse;
 import org.sopt.dto.Response.PostPageResponse;
 import org.sopt.dto.Response.ReadPostResponse;
@@ -70,12 +70,12 @@ public class PostService {
 
     @Transactional(readOnly = true)
     public ReadPostResponse readPost(Long id) {
-        return new ReadPostResponse(findPostById(id));
+        return new ReadPostResponse(findPostByIdWithUserAndLikes(id));
     }
 
 
     @Transactional
-    public String updatePost(Long id, UpdatePostRequestDto request) {
+    public String updatePost(Long id, UpdatePostRequest request) {
         postValidator.validateTitleAndContent(request.getTitle(), request.getContent());
         validateBoardType(request.getBoardType());
 
@@ -118,6 +118,11 @@ public class PostService {
 
     private Post findPostById(Long id) {
         return postRepository.findById(id)
+                .orElseThrow(PostNotFoundException::new);
+    }
+
+    private Post findPostByIdWithUserAndLikes(Long id) {
+        return postRepository.findByIdWithUserAndLikes(id)
                 .orElseThrow(PostNotFoundException::new);
     }
 

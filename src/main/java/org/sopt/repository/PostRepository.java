@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("select distinct p from Post p join fetch p.user left join fetch p.likes")
@@ -13,4 +14,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query("select distinct p from Post p join fetch p.user left join fetch p.likes where p.boardType = :boardType")
     List<Post> findAllByBoardTypeWithUserAndLikes(@Param("boardType") org.sopt.domain.BoardType boardType);
+
+    @Query("select distinct p from Post p join fetch p.user left join fetch p.likes where p.id = :id")
+    Optional<Post> findByIdWithUserAndLikes(@Param("id") Long id);
 }
