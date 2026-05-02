@@ -3,14 +3,14 @@ package org.sopt.dto.Response;
 import java.util.List;
 
 public class PostPageResponse {
-    private final List<ReadPostResponseDto> posts;
+    private final List<ReadPostResponse> posts;
     private final int page;
     private final int size;
     private final long totalElements;
     private final int totalPages;
 
     public PostPageResponse(
-            List<ReadPostResponseDto> posts,
+            List<ReadPostResponse> posts,
             int page,
             int size,
             long totalElements,
@@ -23,7 +23,7 @@ public class PostPageResponse {
         this.totalPages = totalPages;
     }
 
-    public List<ReadPostResponseDto> getPosts() {
+    public List<ReadPostResponse> getPosts() {
         return posts;
     }
 

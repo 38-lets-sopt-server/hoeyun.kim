@@ -1,21 +1,26 @@
 package org.sopt.service;
 
 import org.sopt.domain.BoardType;
+import org.sopt.domain.Like;
 import org.sopt.domain.Post;
+import org.sopt.domain.User;
 import org.sopt.dto.Request.CreatePostRequest;
 import org.sopt.dto.Request.UpdatePostRequestDto;
 import org.sopt.dto.Response.CreatePostResponse;
 import org.sopt.dto.Response.PostPageResponse;
-import org.sopt.dto.Response.ReadPostResponseDto;
+import org.sopt.dto.Response.ReadPostResponse;
+import org.sopt.exception.DuplicateLikeException;
+import org.sopt.exception.LikeNotFoundException;
+import org.sopt.exception.PostNotFoundException;
+import org.sopt.exception.UserNotFoundException;
+import org.sopt.repository.LikeRepository;
 import org.sopt.repository.PostRepository;
 import org.sopt.repository.UserRepository;
 import org.sopt.validator.PostValidator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.sopt.exception.PostNotFoundException;
 
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -24,23 +29,25 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final LikeRepository likeRepository;
 
     private final PostValidator postValidator = new PostValidator();
 
-    public PostService(PostRepository postRepository, UserRepository userRepository) {
+    public PostService(PostRepository postRepository, UserRepository userRepository, LikeRepository likeRepository) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
+        this.likeRepository = likeRepository;
     }
 
     @Transactional
     public CreatePostResponse createPost(CreatePostRequest request) {
         postValidator.validateTitleAndContent(request.getTitle(), request.getContent());
         validateBoardType(request.getBoardType());
+        User user = findUserById(request.getUserId());
         Post newPost = new Post(
                 request.getTitle(),
                 request.getContent(),
-                request.getUser(),
-                LocalDateTime.now().toString(),
+                user,
                 request.getBoardType()
         );
         postRepository.save(newPost);
@@ -50,23 +57,20 @@ public class PostService {
     @Transactional(readOnly = true)
     public PostPageResponse getAllPosts(int page, int size) {
         validatePageRequest(page, size);
-        return createPostPageResponse(postRepository.findAll(), page, size);
+        return createPostPageResponse(postRepository.findAllWithUserAndLikes(), page, size);
     }
 
 
     @Transactional(readOnly = true)
     public PostPageResponse getPostsByBoardType(BoardType boardType, int page, int size) {
         validatePageRequest(page, size);
-        List<Post> filteredPosts = postRepository.findAll().stream()
-                .filter(post -> post.getBoardType() == boardType)
-                .toList();
-        return createPostPageResponse(filteredPosts, page, size);
+        return createPostPageResponse(postRepository.findAllByBoardTypeWithUserAndLikes(boardType), page, size);
     }
 
 
     @Transactional(readOnly = true)
-    public ReadPostResponseDto readPost(Long id) {
-        return new ReadPostResponseDto(findPostById(id));
+    public ReadPostResponse readPost(Long id) {
+        return new ReadPostResponse(findPostById(id));
     }
 
 
@@ -87,9 +91,42 @@ public class PostService {
         return "삭제 완료!";
     }
 
+    @Transactional
+    public String likePost(Long postId, Long userId) {
+        Post post = findPostById(postId);
+        User user = findUserById(userId);
+
+        if (likeRepository.existsByUserIdAndPostId(userId, postId)) {
+            throw new DuplicateLikeException();
+        }
+
+        likeRepository.save(new Like(user, post));
+        return "좋아요 추가 완료!";
+    }
+
+    @Transactional
+    public String cancelLike(Long postId, Long userId) {
+        findPostById(postId);
+        findUserById(userId);
+
+        Like like = likeRepository.findByUserIdAndPostId(userId, postId)
+                .orElseThrow(LikeNotFoundException::new);
+
+        likeRepository.delete(like);
+        return "좋아요 취소 완료!";
+    }
+
     private Post findPostById(Long id) {
         return postRepository.findById(id)
                 .orElseThrow(PostNotFoundException::new);
+    }
+
+    private User findUserById(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("userId는 필수입니다.");
+        }
+        return userRepository.findById(id)
+                .orElseThrow(UserNotFoundException::new);
     }
 
 
@@ -118,8 +155,8 @@ public class PostService {
             return new PostPageResponse(List.of(), page, size, totalElements, totalPages);
         }
 
-        List<ReadPostResponseDto> pagedPosts = posts.subList(startIndex, endIndex).stream()
-                .map(ReadPostResponseDto::new)
+        List<ReadPostResponse> pagedPosts = posts.subList(startIndex, endIndex).stream()
+                .map(ReadPostResponse::new)
                 .toList();
 
         return new PostPageResponse(pagedPosts, page, size, totalElements, totalPages);

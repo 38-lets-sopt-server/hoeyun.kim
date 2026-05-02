@@ -18,6 +18,27 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.fail(errorCode.getCode(), errorCode.getMessage()));
     }
 
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleUserNotFound(UserNotFoundException exception) {
+        ErrorCode errorCode = exception.getErrorCode();
+        return ResponseEntity.status(errorCode.getStatus())
+                .body(ApiResponse.fail(errorCode.getCode(), errorCode.getMessage()));
+    }
+
+    @ExceptionHandler(DuplicateLikeException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDuplicateLike(DuplicateLikeException exception) {
+        ErrorCode errorCode = exception.getErrorCode();
+        return ResponseEntity.status(errorCode.getStatus())
+                .body(ApiResponse.fail(errorCode.getCode(), errorCode.getMessage()));
+    }
+
+    @ExceptionHandler(LikeNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleLikeNotFound(LikeNotFoundException exception) {
+        ErrorCode errorCode = exception.getErrorCode();
+        return ResponseEntity.status(errorCode.getStatus())
+                .body(ApiResponse.fail(errorCode.getCode(), errorCode.getMessage()));
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiResponse<Void>> handleIllegalArgument(IllegalArgumentException exception) {
         ErrorCode errorCode = ErrorCode.INVALID_POST_REQUEST;

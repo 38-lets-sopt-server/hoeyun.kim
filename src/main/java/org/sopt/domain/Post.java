@@ -2,8 +2,11 @@ package org.sopt.domain;
 
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
-public class Post {
+public class Post extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -16,16 +19,17 @@ public class Post {
     @JoinColumn(name = "user_id")
     private User user;
 
-    private String createdAt;
     private BoardType boardType;
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Like> likes = new ArrayList<>();
 
     protected Post() {}
 
-    public Post( String title, String content, User user, String createdAt, BoardType boardType) {
+    public Post(String title, String content, User user, BoardType boardType) {
         this.title = title;
         this.content = content;
         this.user = user;
-        this.createdAt = createdAt;
         this.boardType = boardType;
     }
 
@@ -33,8 +37,8 @@ public class Post {
     public String getTitle() { return title; }
     public String getContent() { return content; }
     public User getUser() { return user; }
-    public String getCreatedAt() { return createdAt; }
     public BoardType getBoardType() { return boardType; }
+    public int getLikeCount() { return likes.size(); }
 
     public void update(String title, String content, BoardType boardType) {
         this.title = title;
@@ -43,6 +47,6 @@ public class Post {
     }
 
     public String getInfo() {
-        return "[" + id + "] " + title + " - " + user + " (" + createdAt + ")\n" + content;
+        return "[" + id + "] " + title + " - " + user + " (" + getCreatedAt() + ")\n" + content;
     }
 }

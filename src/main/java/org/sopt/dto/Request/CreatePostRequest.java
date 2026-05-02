@@ -1,22 +1,21 @@
 package org.sopt.dto.Request;
 
 import org.sopt.domain.BoardType;
-import org.sopt.domain.User;
 
 // 게시글 작성 요청 (클라이언트 → 서버)
 public class CreatePostRequest {
     private String title;
     private String content;
-    private User user;
+    private Long userId;
     private BoardType boardType;
 
     public CreatePostRequest() {
     }
 
-    public CreatePostRequest(String title, String content, User user, BoardType boardType) {
+    public CreatePostRequest(String title, String content, Long userId, BoardType boardType) {
         this.title = title;
         this.content = content;
-        this.user = user;
+        this.userId = userId;
         this.boardType = boardType;
     }
 
@@ -36,12 +35,12 @@ public class CreatePostRequest {
         this.content = content;
     }
 
-    public User getUser() {
-        return this.user;
+    public Long getUserId() {
+        return this.userId;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public BoardType getBoardType() {
