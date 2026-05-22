@@ -29,6 +29,16 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("COMMON_200", "로그인 완료!", tokens));
     }
 
+    @Operation(summary = "토큰 재발급")
+    @PostMapping("/reissue")
+    public ResponseEntity<ApiResponse<TokenResponse>> reissue(
+            @RequestParam("refreshToken") String refreshToken
+    ) {
+        TokenResponse tokens = authService.reissue(refreshToken);
+
+        return ResponseEntity.ok(ApiResponse.success("COMMON_200", "토큰 재발급 완료!", tokens));
+    }
+
     @Operation(summary = "내 정보 조회 (Access Token 검증)")
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserResponse>> me(Authentication authentication) {

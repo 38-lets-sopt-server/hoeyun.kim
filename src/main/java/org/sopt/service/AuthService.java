@@ -52,6 +52,26 @@ public class AuthService {
         return TokenResponse.of(accessToken, refreshToken);
     }
 
+    @Transactional
+    public TokenResponse reissue(String refreshToken) {
+        Long memberId = jwtService.verifyAndGetMemberId(refreshToken);
+        RefreshToken storedRefreshToken = refreshTokenRepository.findByToken(refreshToken)
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 Refresh Token입니다."));
+
+        if (!storedRefreshToken.getMemberId().equals(memberId)) {
+            throw new IllegalArgumentException("Refresh Token의 회원 정보가 올바르지 않습니다.");
+        }
+
+        User user = userRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
+
+        String newAccessToken = jwtService.generateAccessToken(user.getId(), user.getEmail());
+        String newRefreshToken = jwtService.generateRefreshToken(user.getId());
+        storedRefreshToken.rotate(newRefreshToken, refreshTokenExpiresInSeconds);
+
+        return TokenResponse.of(newAccessToken, newRefreshToken);
+    }
+
     public UserResponse getMemberById(Long memberId) {
         User user = userRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
