@@ -127,7 +127,7 @@ public class PostController {
             @RequestBody UpdatePostRequest request
     ) {
         String message = postService.updatePost(id, request);
-        return ApiResponse.success(COMMON_OK_CODE, message);
+        return ApiResponse.success(COMMON_OK_CODE, message, null);
     }
 
     // DELETE /posts/{id} 📝 과제
@@ -142,7 +142,7 @@ public class PostController {
             @PathVariable Long id
     ) {
         String message = postService.deletePost(id);
-        return ApiResponse.success(COMMON_OK_CODE, message);
+        return ApiResponse.success(COMMON_OK_CODE, message, null);
     }
 
     @PostMapping("/{postId}/likes")
@@ -159,7 +159,7 @@ public class PostController {
             @RequestParam Long userId
     ) {
         String message = postService.likePost(postId, userId);
-        return ApiResponse.success(COMMON_OK_CODE, message);
+        return ApiResponse.success(COMMON_OK_CODE, message, null);
     }
 
     @DeleteMapping("/{postId}/likes")
@@ -175,6 +175,6 @@ public class PostController {
             @RequestParam Long userId
     ) {
         String message = postService.cancelLike(postId, userId);
-        return ApiResponse.success(COMMON_OK_CODE, message);
+        return ApiResponse.success(COMMON_OK_CODE, message, null);
     }
 }

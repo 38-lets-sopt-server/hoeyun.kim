@@ -19,20 +19,11 @@ public class User {
     @Schema(description = "사용자 이메일", example = "sopt@example.com")
     private String email;
 
-    @Schema(description = "사용자 비밀번호", example = "password123")
-    private String password;
-
     protected User() {}
 
     public User(String nickname, String email) {
         this.nickname = nickname;
         this.email = email;
-    }
-
-    public User(String nickname, String email, String password) {
-        this.nickname = nickname;
-        this.email = email;
-        this.password = password;
     }
 
     public Long getId() {
@@ -45,9 +36,5 @@ public class User {
 
     public String getEmail() {
         return this.email;
-    }
-
-    public String getPassword() {
-        return this.password;
     }
 }

@@ -5,7 +5,7 @@ spring:
   datasource:
     url: ${DB_URL:jdbc:mysql://localhost:3306/assignment}
     username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD}
+    password: ${DB_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -21,12 +21,6 @@ springdoc:
   swagger-ui:
     url: /v3/api-docs
   use-management-port: false
-
-security:
-  jwt:
-    secret: ${security.jwt.secret}
-    access-token-expires-in-seconds: 1800
-    refresh-token-expires-in-seconds: 1209600
 
 server:
   forward-headers-strategy: framework
