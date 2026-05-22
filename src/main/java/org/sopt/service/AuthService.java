@@ -10,6 +10,7 @@ import org.sopt.dto.Response.UserResponse;
 import org.sopt.repository.RefreshTokenRepository;
 import org.sopt.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,6 +20,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtService jwtService;
+    private final PasswordEncoder passwordEncoder;
 
     @Value("${security.jwt.refresh-token-expires-in-seconds:1209600}")
     private long refreshTokenExpiresInSeconds;
@@ -27,7 +29,7 @@ public class AuthService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
 
-        if (!user.getPassword().equals(password)) {
+        if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new IllegalArgumentException("이메일 또는 비밀번호가 올바르지 않습니다.");
         }
 
