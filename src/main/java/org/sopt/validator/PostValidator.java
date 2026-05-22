@@ -1,5 +1,8 @@
 package org.sopt.validator;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class PostValidator {
     public void validateTitleAndContent(String title, String content) {
         if (title == null || title.isBlank()) {

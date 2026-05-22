@@ -11,52 +11,27 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    @ExceptionHandler(PostNotFoundException.class)
-    public ResponseEntity<ApiResponse<Void>> handlePostNotFound(PostNotFoundException exception) {
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ApiResponse<Void>> handleBusinessException(BusinessException exception) {
         ErrorCode errorCode = exception.getErrorCode();
-        return ResponseEntity.status(errorCode.getStatus())
-                .body(ApiResponse.fail(errorCode.getCode(), errorCode.getMessage()));
-    }
-
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ApiResponse<Void>> handleUserNotFound(UserNotFoundException exception) {
-        ErrorCode errorCode = exception.getErrorCode();
-        return ResponseEntity.status(errorCode.getStatus())
-                .body(ApiResponse.fail(errorCode.getCode(), errorCode.getMessage()));
-    }
-
-    @ExceptionHandler(DuplicateLikeException.class)
-    public ResponseEntity<ApiResponse<Void>> handleDuplicateLike(DuplicateLikeException exception) {
-        ErrorCode errorCode = exception.getErrorCode();
-        return ResponseEntity.status(errorCode.getStatus())
-                .body(ApiResponse.fail(errorCode.getCode(), errorCode.getMessage()));
-    }
-
-    @ExceptionHandler(LikeNotFoundException.class)
-    public ResponseEntity<ApiResponse<Void>> handleLikeNotFound(LikeNotFoundException exception) {
-        ErrorCode errorCode = exception.getErrorCode();
-        return ResponseEntity.status(errorCode.getStatus())
-                .body(ApiResponse.fail(errorCode.getCode(), errorCode.getMessage()));
+        return fail(errorCode);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiResponse<Void>> handleIllegalArgument(IllegalArgumentException exception) {
         ErrorCode errorCode = ErrorCode.INVALID_POST_REQUEST;
-        return ResponseEntity.status(errorCode.getStatus())
-                .body(ApiResponse.fail(errorCode.getCode(), exception.getMessage()));
+        return fail(errorCode, exception.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ApiResponse<Void>> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException exception) {
         if (exception.getRequiredType() == BoardType.class) {
             ErrorCode errorCode = ErrorCode.INVALID_BOARD_TYPE;
-            return ResponseEntity.status(errorCode.getStatus())
-                    .body(ApiResponse.fail(errorCode.getCode(), errorCode.getMessage()));
+            return fail(errorCode);
         }
 
         ErrorCode errorCode = ErrorCode.INVALID_POST_REQUEST;
-        return ResponseEntity.status(errorCode.getStatus())
-                .body(ApiResponse.fail(errorCode.getCode(), errorCode.getMessage()));
+        return fail(errorCode);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -64,19 +39,25 @@ public class GlobalExceptionHandler {
         if (exception.getCause() instanceof InvalidFormatException invalidFormatException
                 && invalidFormatException.getTargetType() == BoardType.class) {
             ErrorCode errorCode = ErrorCode.INVALID_BOARD_TYPE;
-            return ResponseEntity.status(errorCode.getStatus())
-                    .body(ApiResponse.fail(errorCode.getCode(), errorCode.getMessage()));
+            return fail(errorCode);
         }
 
         ErrorCode errorCode = ErrorCode.INVALID_POST_REQUEST;
-        return ResponseEntity.status(errorCode.getStatus())
-                .body(ApiResponse.fail(errorCode.getCode(), errorCode.getMessage()));
+        return fail(errorCode);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleException(Exception exception) {
         ErrorCode errorCode = ErrorCode.INTERNAL_SERVER_ERROR;
+        return fail(errorCode, errorCode.getMessage());
+    }
+
+    private ResponseEntity<ApiResponse<Void>> fail(ErrorCode errorCode) {
+        return fail(errorCode, errorCode.getMessage());
+    }
+
+    private ResponseEntity<ApiResponse<Void>> fail(ErrorCode errorCode, String message) {
         return ResponseEntity.status(errorCode.getStatus())
-                .body(ApiResponse.fail(errorCode.getCode(), errorCode.getMessage()));
+                .body(ApiResponse.fail(errorCode.getCode(), message));
     }
 }

@@ -10,6 +10,7 @@ import org.sopt.dto.Response.CreatePostResponse;
 import org.sopt.dto.Response.PostPageResponse;
 import org.sopt.dto.Response.ReadPostResponse;
 import org.sopt.exception.DuplicateLikeException;
+import org.sopt.exception.InvalidBoardTypeException;
 import org.sopt.exception.LikeNotFoundException;
 import org.sopt.exception.PostNotFoundException;
 import org.sopt.exception.UserNotFoundException;
@@ -17,11 +18,15 @@ import org.sopt.repository.LikeRepository;
 import org.sopt.repository.PostRepository;
 import org.sopt.repository.UserRepository;
 import org.sopt.validator.PostValidator;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -30,13 +35,18 @@ public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final LikeRepository likeRepository;
+    private final PostValidator postValidator;
 
-    private final PostValidator postValidator = new PostValidator();
-
-    public PostService(PostRepository postRepository, UserRepository userRepository, LikeRepository likeRepository) {
+    public PostService(
+            PostRepository postRepository,
+            UserRepository userRepository,
+            LikeRepository likeRepository,
+            PostValidator postValidator
+    ) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.likeRepository = likeRepository;
+        this.postValidator = postValidator;
     }
 
     @Transactional
@@ -57,20 +67,22 @@ public class PostService {
     @Transactional(readOnly = true)
     public PostPageResponse getAllPosts(int page, int size) {
         validatePageRequest(page, size);
-        return createPostPageResponse(postRepository.findAllWithUserAndLikes(), page, size);
+        return createPostPageResponse(postRepository.findAll(PageRequest.of(page, size)));
     }
 
 
     @Transactional(readOnly = true)
     public PostPageResponse getPostsByBoardType(BoardType boardType, int page, int size) {
         validatePageRequest(page, size);
-        return createPostPageResponse(postRepository.findAllByBoardTypeWithUserAndLikes(boardType), page, size);
+        validateBoardType(boardType);
+        return createPostPageResponse(postRepository.findByBoardType(boardType, PageRequest.of(page, size)));
     }
 
 
     @Transactional(readOnly = true)
     public ReadPostResponse readPost(Long id) {
-        return new ReadPostResponse(findPostByIdWithUserAndLikes(id));
+        Post post = findPostByIdWithUser(id);
+        return new ReadPostResponse(post, likeRepository.countByPostId(post.getId()));
     }
 
 
@@ -85,8 +97,10 @@ public class PostService {
     }
 
 
+    @Transactional
     public String deletePost(Long id) {
         Post post = findPostById(id);
+        likeRepository.deleteByPostId(id);
         postRepository.delete(post);
         return "삭제 완료!";
     }
@@ -121,8 +135,8 @@ public class PostService {
                 .orElseThrow(PostNotFoundException::new);
     }
 
-    private Post findPostByIdWithUserAndLikes(Long id) {
-        return postRepository.findByIdWithUserAndLikes(id)
+    private Post findPostByIdWithUser(Long id) {
+        return postRepository.findByIdWithUser(id)
                 .orElseThrow(PostNotFoundException::new);
     }
 
@@ -146,25 +160,40 @@ public class PostService {
 
     private void validateBoardType(BoardType boardType) {
         if (boardType == null) {
-            throw new IllegalArgumentException("boardType은 필수입니다.");
+            throw new InvalidBoardTypeException();
         }
     }
 
-    private PostPageResponse createPostPageResponse(List<Post> posts, int page, int size) {
-        int totalElements = posts.size();
-        int totalPages = totalElements == 0 ? 0 : (int) Math.ceil((double) totalElements / size);
-        int startIndex = page * size;
-        int endIndex = Math.min(startIndex + size, totalElements);
-
-        if (startIndex >= totalElements) {
-            return new PostPageResponse(List.of(), page, size, totalElements, totalPages);
-        }
-
-        List<ReadPostResponse> pagedPosts = posts.subList(startIndex, endIndex).stream()
-                .map(ReadPostResponse::new)
+    private PostPageResponse createPostPageResponse(Page<Post> postPage) {
+        List<Post> posts = postPage.getContent();
+        Map<Long, Long> likeCountByPostId = getLikeCountByPostId(posts);
+        List<ReadPostResponse> postResponses = posts.stream()
+                .map(post -> new ReadPostResponse(post, likeCountByPostId.getOrDefault(post.getId(), 0L)))
                 .toList();
 
-        return new PostPageResponse(pagedPosts, page, size, totalElements, totalPages);
+        return new PostPageResponse(
+                postResponses,
+                postPage.getNumber(),
+                postPage.getSize(),
+                postPage.getTotalElements(),
+                postPage.getTotalPages()
+        );
+    }
+
+    private Map<Long, Long> getLikeCountByPostId(List<Post> posts) {
+        if (posts.isEmpty()) {
+            return Map.of();
+        }
+
+        List<Long> postIds = posts.stream()
+                .map(Post::getId)
+                .toList();
+
+        return likeRepository.countLikesByPostIds(postIds).stream()
+                .collect(Collectors.toMap(
+                        LikeRepository.PostLikeCount::getPostId,
+                        LikeRepository.PostLikeCount::getLikeCount
+                ));
     }
 
     public UserRepository getUserRepository() {
