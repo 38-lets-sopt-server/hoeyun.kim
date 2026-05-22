@@ -8,6 +8,7 @@ import org.sopt.dto.Response.ApiResponse;
 import org.sopt.dto.Response.TokenResponse;
 import org.sopt.dto.Response.UserResponse;
 import org.sopt.service.AuthService;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,6 +40,16 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("COMMON_200", "토큰 재발급 완료!", tokens));
     }
 
+    @Operation(summary = "로그아웃")
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader
+    ) {
+        authService.logout(extractAccessToken(authorizationHeader));
+
+        return ResponseEntity.ok(ApiResponse.success("COMMON_200", "로그아웃 완료!"));
+    }
+
     @Operation(summary = "내 정보 조회 (Access Token 검증)")
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserResponse>> me(Authentication authentication) {
@@ -51,5 +62,12 @@ public class AuthController {
         UserResponse userResponse = authService.getMemberById(userId);
 
         return ResponseEntity.ok(ApiResponse.success("COMMON_200", "내 정보 조회 완료!", userResponse));
+    }
+
+    private String extractAccessToken(String authorizationHeader) {
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Access Token이 없습니다.");
+        }
+        return authorizationHeader.substring("Bearer ".length()).trim();
     }
 }
