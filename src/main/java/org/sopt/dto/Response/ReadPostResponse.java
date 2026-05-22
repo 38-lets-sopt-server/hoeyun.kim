@@ -31,12 +31,16 @@ public class ReadPostResponse {
     private BoardType boardType;
 
     @Schema(description = "게시글 좋아요 수", example = "3")
-    private int likeCount;
+    private long likeCount;
 
     public ReadPostResponse() {
     }
 
     public ReadPostResponse(Post post) {
+        this(post, 0);
+    }
+
+    public ReadPostResponse(Post post, long likeCount) {
         this.id = post.getId();
         this.title = post.getTitle();
         this.content = post.getContent();
@@ -44,7 +48,7 @@ public class ReadPostResponse {
         this.createdAt = post.getCreatedAt();
         this.updatedAt = post.getUpdatedAt();
         this.boardType = post.getBoardType();
-        this.likeCount = post.getLikeCount();
+        this.likeCount = likeCount;
     }
 
     public Long getId() {
@@ -75,7 +79,7 @@ public class ReadPostResponse {
         return boardType;
     }
 
-    public int getLikeCount() {
+    public long getLikeCount() {
         return likeCount;
     }
 

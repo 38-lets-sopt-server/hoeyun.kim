@@ -1,20 +1,23 @@
 package org.sopt.repository;
 
+import org.sopt.domain.BoardType;
 import org.sopt.domain.Post;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
-    @Query("select distinct p from Post p join fetch p.user left join fetch p.likes")
-    List<Post> findAllWithUserAndLikes();
+    @EntityGraph(attributePaths = "user")
+    Page<Post> findAll(Pageable pageable);
 
-    @Query("select distinct p from Post p join fetch p.user left join fetch p.likes where p.boardType = :boardType")
-    List<Post> findAllByBoardTypeWithUserAndLikes(@Param("boardType") org.sopt.domain.BoardType boardType);
+    @EntityGraph(attributePaths = "user")
+    Page<Post> findByBoardType(BoardType boardType, Pageable pageable);
 
-    @Query("select distinct p from Post p join fetch p.user left join fetch p.likes where p.id = :id")
-    Optional<Post> findByIdWithUserAndLikes(@Param("id") Long id);
+    @Query("select p from Post p join fetch p.user where p.id = :id")
+    Optional<Post> findByIdWithUser(@Param("id") Long id);
 }
