@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 
 @Service
@@ -56,5 +58,13 @@ public class JwtService {
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("JWT의 회원 정보가 올바르지 않습니다.");
         }
+    }
+
+    public LocalDateTime getExpiresAt(String token) {
+        if (token == null || token.isBlank()) {
+            throw new IllegalArgumentException("토큰이 없습니다.");
+        }
+        DecodedJWT jwt = JWT.require(algorithm).build().verify(token);
+        return LocalDateTime.ofInstant(jwt.getExpiresAt().toInstant(), ZoneId.systemDefault());
     }
 }

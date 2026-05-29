@@ -8,12 +8,13 @@ import org.sopt.dto.Response.ApiResponse;
 import org.sopt.dto.Response.TokenResponse;
 import org.sopt.dto.Response.UserResponse;
 import org.sopt.service.AuthService;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/auth")
 public class AuthController {
 
     private final AuthService authService;
@@ -29,8 +30,28 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("COMMON_200", "로그인 완료!", tokens));
     }
 
+    @Operation(summary = "토큰 재발급")
+    @PostMapping("/reissue")
+    public ResponseEntity<ApiResponse<TokenResponse>> reissue(
+            @RequestParam("refreshToken") String refreshToken
+    ) {
+        TokenResponse tokens = authService.reissue(refreshToken);
+
+        return ResponseEntity.ok(ApiResponse.success("COMMON_200", "토큰 재발급 완료!", tokens));
+    }
+
+    @Operation(summary = "로그아웃")
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader
+    ) {
+        authService.logout(extractAccessToken(authorizationHeader));
+
+        return ResponseEntity.ok(ApiResponse.success("COMMON_200", "로그아웃 완료!"));
+    }
+
     @Operation(summary = "내 정보 조회 (Access Token 검증)")
-    @GetMapping("/api/v1/me")
+    @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserResponse>> me(Authentication authentication) {
 
         if (authentication == null || authentication.getPrincipal() == null) {
@@ -41,5 +62,12 @@ public class AuthController {
         UserResponse userResponse = authService.getMemberById(userId);
 
         return ResponseEntity.ok(ApiResponse.success("COMMON_200", "내 정보 조회 완료!", userResponse));
+    }
+
+    private String extractAccessToken(String authorizationHeader) {
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Access Token이 없습니다.");
+        }
+        return authorizationHeader.substring("Bearer ".length()).trim();
     }
 }
